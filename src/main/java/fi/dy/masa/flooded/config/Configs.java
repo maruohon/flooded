@@ -24,6 +24,7 @@ public class Configs
     public static boolean dimensionListIsBlacklist;
     public static int waterLayerSeedingCount;
     public static int waterLayerSeedingInterval;
+    public static int waterSpreadScheduleLimit;
     public static int waterRiseInterval;
     private static String dimensionsStr;
     private static final Set<Integer> DIMENSIONS = new HashSet<>();
@@ -90,6 +91,10 @@ public class Configs
         prop.setComment("If enabled, then newly generated chunks will get flooded entirely in every air\n" +
                         "space that is below the current global water level.");
         floodNewChunksUnderground = prop.getBoolean();
+
+        prop = conf.get(CATEGORY_GENERIC, "waterSpreadScheduleLimit", 800);
+        prop.setComment("Maximum number of scheduled updates at once for spreading water layers");
+        waterSpreadScheduleLimit = prop.getInt();
 
         prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingCount", 200);
         prop.setComment("How many attempts (max created blocks) are made at every water layer seeding attempt");

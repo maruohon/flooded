@@ -15,6 +15,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkPrimer;
 import fi.dy.masa.flooded.block.BlockLiquidLayer;
 import fi.dy.masa.flooded.block.FloodedBlocks;
+import fi.dy.masa.flooded.config.Configs;
 
 public class WorldUtil
 {
@@ -181,6 +182,7 @@ public class WorldUtil
                     {
                         IBlockState state = chunk.getBlockState(x, y, z);
                         IBlockState stateDown = chunk.getBlockState(x, y - 1, z);
+                        BlockPos posDown = posMutable.down();
 
                         if (
                                 (
@@ -188,14 +190,18 @@ public class WorldUtil
                                         state.getBlock() == FloodedBlocks.WATER_LAYER
                                      && state.getValue(BlockLiquidLayer.LEVEL) < layerLevel
                                     )
-                                    || state.getBlock().isReplaceable(world, posMutable)
+                                    ||
+                                    (
+                                        state.getBlock() != FloodedBlocks.WATER_LAYER
+                                     && state.getBlock().isReplaceable(world, posMutable)
+                                    )
                                 )
                                 &&
                                 (
                                     (
                                         stateDown.getBlock() == Blocks.WATER
                                      || stateDown.getBlock() == FloodedBlocks.WATER_LAYER
-                                     || stateDown.isSideSolid(world, new BlockPos(x, y - 1, z), EnumFacing.UP)
+                                     || stateDown.isSideSolid(world, posDown, EnumFacing.UP)
                                     )
                                 )
                         )
@@ -204,7 +210,7 @@ public class WorldUtil
 
                             if (stateDown.getBlock() == FloodedBlocks.WATER_LAYER)
                             {
-                                world.setBlockState(new BlockPos(x, y - 1, z), water);
+                                world.setBlockState(posDown, water);
                             }
                         }
                     }
@@ -235,12 +241,18 @@ public class WorldUtil
             IBlockState stateSideDown = world.getBlockState(posSideDown);
 
             if (
+                    world.getBlockState(pos.up()).getMaterial() != state.getMaterial()
+                    &&
                     (
                         (
                             stateSide.getBlock() == FloodedBlocks.WATER_LAYER
                          && stateSide.getValue(BlockLiquidLayer.LEVEL) < state.getValue(BlockLiquidLayer.LEVEL)
                         )
-                        || (stateSide.getBlock() != FloodedBlocks.WATER_LAYER && stateSide.getBlock().isReplaceable(world, posSide))
+                        ||
+                        (
+                            stateSide.getBlock() != FloodedBlocks.WATER_LAYER
+                         && stateSide.getBlock().isReplaceable(world, posSide)
+                        )
                     )
                     &&
                     (
@@ -254,7 +266,12 @@ public class WorldUtil
             {
                 world.setBlockState(posSide, state);
 
-                if (scheduleCount < 1000)
+                if (stateSideDown.getBlock() == FloodedBlocks.WATER_LAYER)
+                {
+                    world.setBlockState(posSideDown, Blocks.WATER.getDefaultState());
+                }
+
+                if (scheduleCount < Configs.waterSpreadScheduleLimit)
                 {
                     world.scheduleUpdate(posSide, state.getBlock(), state.getBlock().tickRate(world));
                     scheduleCount++;
