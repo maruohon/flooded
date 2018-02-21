@@ -1,11 +1,11 @@
 [
 {
-  "modid": "flood",
-  "name": "Flood",
+  "modid": "flooded",
+  "name": "Flooded",
   "description": "It's raining. The water level is rising...",
   "version": "${mod_version}",
   "mcversion": "${minecraft_version}",
-  "url": "http://minecraft.curseforge.com/projects/flood",
+  "url": "http://minecraft.curseforge.com/projects/flooded",
   "updateUrl": "",
   "authorList": ["masa"],
   "credits": "",

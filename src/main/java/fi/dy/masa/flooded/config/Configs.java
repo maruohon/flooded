@@ -8,6 +8,7 @@ import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import fi.dy.masa.flooded.Flooded;
+import fi.dy.masa.flooded.block.FloodedBlocks;
 import fi.dy.masa.flooded.reference.Reference;
 
 public class Configs
@@ -21,6 +22,8 @@ public class Configs
     public static boolean enableWaterLayerRandomSpread;
     public static boolean floodNewChunksUnderground;
     public static boolean dimensionListIsBlacklist;
+    public static int waterLayerSeedingCount;
+    public static int waterLayerSeedingInterval;
     public static int waterRiseInterval;
     private static String dimensionsStr;
     private static final Set<Integer> DIMENSIONS = new HashSet<>();
@@ -67,28 +70,36 @@ public class Configs
     {
         Property prop;
 
-        prop = conf.get(CATEGORY_GENERIC, "dimensionList", "0").setRequiresMcRestart(false);
+        prop = conf.get(CATEGORY_GENERIC, "dimensionList", "0");
         prop.setComment("The white- or blacklist of dimensions to affect. Use a comma to separate the IDs. Example: 0,4,9");
         dimensionsStr = prop.getString();
 
-        prop = conf.get(CATEGORY_GENERIC, "dimensionListIsBlacklist", false).setRequiresMcRestart(false);
+        prop = conf.get(CATEGORY_GENERIC, "dimensionListIsBlacklist", false);
         prop.setComment("If true, then 'dimensionList' is a blacklist. If false");
         dimensionListIsBlacklist = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "enableLoggingInfo", false).setRequiresMcRestart(false);
+        prop = conf.get(CATEGORY_GENERIC, "enableLoggingInfo", false);
         prop.setComment("Enables a bunch of extra (debug) logging on the INFO level");
         enableLoggingInfo = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "enableWaterLayerRandomSpread", true).setRequiresMcRestart(true);
+        prop = conf.get(CATEGORY_GENERIC, "enableWaterLayerRandomSpread", true).setRequiresWorldRestart(true);
         prop.setComment("If enabled, the water layers will try to spread to adjacent lower positions with random ticks");
         enableWaterLayerRandomSpread = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "floodNewChunksUnderground", true).setRequiresMcRestart(false);
+        prop = conf.get(CATEGORY_GENERIC, "floodNewChunksUnderground", true);
         prop.setComment("If enabled, then newly generated chunks will get flooded entirely in every air\n" +
                         "space that is below the current global water level.");
         floodNewChunksUnderground = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "waterRiseInterval", 6000).setRequiresMcRestart(false);
+        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingCount", 200);
+        prop.setComment("How many attempts (max created blocks) are made at every water layer seeding attempt");
+        waterLayerSeedingCount = prop.getInt();
+
+        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingInterval", 200);
+        prop.setComment("The interval in game ticks, how often new water layers are attempted to be created randomly");
+        waterLayerSeedingInterval = prop.getInt();
+
+        prop = conf.get(CATEGORY_GENERIC, "waterRiseInterval", 6000);
         prop.setComment("The interval in game ticks, how often the water level should rise by 1/16th of a block");
         waterRiseInterval = prop.getInt();
 
@@ -96,6 +107,8 @@ public class Configs
         {
             conf.save();
         }
+
+        FloodedBlocks.WATER_LAYER.setTickRandomly(enableWaterLayerRandomSpread);
 
         try
         {

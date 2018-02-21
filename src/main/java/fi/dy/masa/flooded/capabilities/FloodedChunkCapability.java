@@ -1,34 +1,27 @@
 package fi.dy.masa.flooded.capabilities;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraft.world.chunk.Chunk;
 
-public class FloodedChunkCapability implements INBTSerializable<NBTTagCompound>, ICapabilityProvider
+public class FloodedChunkCapability implements IFloodedChunkCapability
 {
+    private int waterLevel;
+
     @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing)
+    public int getWaterLevel()
     {
-        return false;
+        return this.waterLevel;
     }
 
     @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing)
+    public void setWaterLevel(Chunk chunk, int waterLevel)
     {
-        return null;
+        this.waterLevel = waterLevel;
+        chunk.markDirty();
     }
 
     @Override
-    public NBTTagCompound serializeNBT()
+    public void setWaterLevelFromNBT(int waterLevel)
     {
-        return null;
-    }
-
-    @Override
-    public void deserializeNBT(NBTTagCompound nbt)
-    {
-        
+        this.waterLevel = waterLevel;
     }
 }

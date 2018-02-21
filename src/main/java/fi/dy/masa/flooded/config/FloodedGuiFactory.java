@@ -19,7 +19,7 @@ public class FloodedGuiFactory extends DefaultGuiFactory
     @Override
     public GuiScreen createConfigGui(GuiScreen parent)
     {
-        return new GuiConfig(parent, getConfigElements(), Reference.MOD_ID, false, false, getTitle());
+        return new GuiConfig(parent, getConfigElements(), this.modid, false, false, this.title);
     }
 
     private static List<IConfigElement> getConfigElements()

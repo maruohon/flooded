@@ -3,13 +3,19 @@ package fi.dy.masa.flooded;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
+import fi.dy.masa.flooded.capabilities.FloodedCapabilities;
 import fi.dy.masa.flooded.config.Configs;
 import fi.dy.masa.flooded.proxy.CommonProxy;
 import fi.dy.masa.flooded.reference.Reference;
+import fi.dy.masa.flooded.util.WaterLevelManager;
+import fi.dy.masa.flooded.util.WorldUtil;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.MOD_VERSION, certificateFingerprint = Reference.FINGERPRINT,
     guiFactory = "fi.dy.masa.flooded.config.FloodedGuiFactory",
@@ -33,6 +39,21 @@ public class Flooded
 
         Configs.loadConfigsFromMainConfigFile(event.getModConfigurationDirectory());
         proxy.registerEventHandlers();
+        FloodedCapabilities.register();
+    }
+
+    @Mod.EventHandler
+    public void onServerStarted(FMLServerStartedEvent event)
+    {
+        WaterLevelManager.INSTANCE.readFromDisk(DimensionManager.getCurrentSaveRootDirectory());
+        WorldUtil.setScheduleCount(WaterLevelManager.INSTANCE.getScheduleCount());
+    }
+
+    @Mod.EventHandler
+    public void onServerStopping(FMLServerStoppingEvent event)
+    {
+        WaterLevelManager.INSTANCE.setScheduleCount(WorldUtil.getScheduleCount());
+        WaterLevelManager.INSTANCE.writeToDisk();
     }
 
     public static void logInfo(String message, Object... params)

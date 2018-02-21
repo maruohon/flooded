@@ -28,6 +28,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import fi.dy.masa.flooded.config.Configs;
+import fi.dy.masa.flooded.util.WorldUtil;
 
 public class BlockLiquidLayer extends BlockFloodedBase
 {
@@ -152,9 +153,21 @@ public class BlockLiquidLayer extends BlockFloodedBase
     }
 
     @Override
-    public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
+    public void updateTick(World world, BlockPos pos, IBlockState state, Random rand)
     {
-        // TODO
+        if (world.isRemote == false)
+        {
+            WorldUtil.trySpreadWaterLayer(world, pos, state, true);
+        }
+    }
+
+    @Override
+    public void randomTick(World world, BlockPos pos, IBlockState state, Random random)
+    {
+        if (world.isRemote == false)
+        {
+            WorldUtil.trySpreadWaterLayer(world, pos, state, false);
+        }
     }
 
     @Override
@@ -178,15 +191,18 @@ public class BlockLiquidLayer extends BlockFloodedBase
     @SuppressWarnings("deprecation")
     @SideOnly(Side.CLIENT)
     @Override
-    public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
+    public boolean shouldSideBeRendered(IBlockState state, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
     {
-        if (blockAccess.getBlockState(pos.offset(side)).getMaterial() == this.blockMaterial)
+        BlockPos posSide = pos.offset(side);
+        IBlockState stateSide = blockAccess.getBlockState(posSide);
+
+        if (stateSide.getBlock() == this && stateSide.getValue(LEVEL) >= state.getValue(LEVEL))
         {
             return false;
         }
         else
         {
-            return side == EnumFacing.UP ? true : super.shouldSideBeRendered(blockState, blockAccess, pos, side);
+            return side == EnumFacing.UP ? true : super.shouldSideBeRendered(state, blockAccess, pos, side);
         }
     }
 
