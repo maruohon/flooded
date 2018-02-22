@@ -31,6 +31,30 @@ public class FloodedEventHandler
     }
 
     @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event)
+    {
+        final int dimension = event.getWorld().provider.getDimension();
+
+        if (event.getWorld().isRemote == false && Configs.enabledInDimension(dimension))
+        {
+            // Initialize the water level if the worlds loads for the first time
+            WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
+        }
+    }
+
+    @SubscribeEvent
+    public void onCreateSpawn(WorldEvent.CreateSpawnPosition event)
+    {
+        final int dimension = event.getWorld().provider.getDimension();
+
+        if (event.getWorld().isRemote == false && Configs.enabledInDimension(dimension))
+        {
+            // Initialize the water level if the worlds loads for the first time
+            WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
+        }
+    }
+
+    @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event)
     {
         final int dimension = event.getWorld().provider.getDimension();

@@ -1,14 +1,15 @@
 package fi.dy.masa.flooded;
 
+import java.io.File;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import net.minecraftforge.common.DimensionManager;
+import net.minecraft.world.chunk.storage.AnvilSaveConverter;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLFingerprintViolationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import fi.dy.masa.flooded.capabilities.FloodedCapabilities;
 import fi.dy.masa.flooded.config.Configs;
@@ -43,9 +44,10 @@ public class Flooded
     }
 
     @Mod.EventHandler
-    public void onServerStarted(FMLServerStartedEvent event)
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event)
     {
-        WaterLevelManager.INSTANCE.readFromDisk(DimensionManager.getCurrentSaveRootDirectory());
+        File worldDir = new File(((AnvilSaveConverter) event.getServer().getActiveAnvilConverter()).savesDirectory, event.getServer().getFolderName());
+        WaterLevelManager.INSTANCE.readFromDisk(worldDir);
         WorldUtil.setScheduleCount(WaterLevelManager.INSTANCE.getScheduleCount());
     }
 

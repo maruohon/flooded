@@ -34,6 +34,7 @@ public class WaterLevelManager
 
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(dimension);
         int level = world != null ? world.getSeaLevel() * 16 : 63 * 16;
+        Flooded.logInfo("Initialized the water level in dimension {} to {}", dimension, (float) level / 16f);
 
         this.setWaterLevelInDimension(dimension, level);
 
