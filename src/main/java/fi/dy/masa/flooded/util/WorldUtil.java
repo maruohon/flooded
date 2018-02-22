@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import com.google.common.base.Predicate;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -196,7 +197,7 @@ public class WorldUtil
                     if (
                            blockOld != Blocks.WATER
                         && blockOld.isReplaceable(world, posMutable)
-                        && world.canSeeSky(posMutable)
+                        && chunk.canSeeSky(posMutable)
                     )
                     {
                         chunk.setBlockState(posMutable, water);
@@ -241,11 +242,8 @@ public class WorldUtil
                             )
                             ||
                             (
-                                   blockOld != FloodedBlocks.WATER_LAYER
-                                && blockOld != Blocks.WATER
-                                && blockOld.isReplaceable(world, posMutable)
-                                && stateOld.getMaterial().isLiquid() == false
-                                && world.canSeeSky(posMutable)
+                                   canFlowInto(world, posMutable, stateOld, layer)
+                                && chunk.canSeeSky(posMutable)
                             )
                     )
                     {
@@ -329,35 +327,20 @@ public class WorldUtil
                     int z = (chunk.z << 4) + world.rand.nextInt(16);
                     posMutable.setPos(x, y, z);
 
-                    if (world.canSeeSky(posMutable))
+                    if (chunk.canSeeSky(posMutable))
                     {
                         IBlockState stateOld = chunk.getBlockState(x, y, z);
                         IBlockState stateDown = chunk.getBlockState(x, y - 1, z);
-                        Block blockOld = stateOld.getBlock();
                         Block blockDown = stateDown.getBlock();
                         BlockPos posDown = posMutable.down();
 
                         if (
-                                (
-                                    (
-                                        blockOld == FloodedBlocks.WATER_LAYER
-                                     && stateOld.getValue(BlockLiquidLayer.LEVEL) < layerLevel
-                                    )
-                                    ||
-                                    (
-                                        blockOld != FloodedBlocks.WATER_LAYER
-                                     && blockOld != Blocks.WATER
-                                     && blockOld.isReplaceable(world, posMutable)
-                                     && stateOld.getMaterial().isLiquid() == false
-                                    )
-                                )
+                                canFlowInto(world, posMutable, stateOld, newState)
                                 &&
                                 (
-                                    (
-                                        blockDown == Blocks.WATER
-                                     || blockDown == FloodedBlocks.WATER_LAYER
-                                     || stateDown.isSideSolid(world, posDown, EnumFacing.UP)
-                                    )
+                                       blockDown == Blocks.WATER
+                                    || blockDown == FloodedBlocks.WATER_LAYER
+                                    || stateDown.isSideSolid(world, posDown, EnumFacing.UP)
                                 )
                         )
                         {
@@ -402,25 +385,12 @@ public class WorldUtil
 
             BlockPos posSideDown = posSide.down();
             IBlockState stateSide = world.getBlockState(posSide);
-            Block blockSide = stateSide.getBlock();
             IBlockState stateSideDown = world.getBlockState(posSideDown);
             Block blockSideDown = stateSideDown.getBlock();
 
             if (
-                    world.getBlockState(pos.up()).getMaterial() != state.getMaterial()
-                    &&
-                    (
-                        (
-                            blockSide == FloodedBlocks.WATER_LAYER
-                         && stateSide.getValue(BlockLiquidLayer.LEVEL) < state.getValue(BlockLiquidLayer.LEVEL)
-                        )
-                        ||
-                        (
-                            blockSide != FloodedBlocks.WATER_LAYER
-                         && blockSide.isReplaceable(world, posSide)
-                         && stateSide.getMaterial().isLiquid() == false
-                        )
-                    )
+                       world.getBlockState(pos.up()).getMaterial() != state.getMaterial()
+                    && canFlowInto(world, posSide, stateSide, state)
                     &&
                     (
                         (
@@ -506,6 +476,35 @@ public class WorldUtil
                 Flooded.logInfo("Water layer seeding attempt, water level = {}", (float) waterLevel / 16f);
                 seedWaterLayers((WorldServer) world, waterLevel, Configs.waterLayerSeedingCount);
             }
+        }
+    }
+
+    private static boolean canFlowInto(World world, BlockPos pos, IBlockState stateTarget, IBlockState stateSource)
+    {
+        Material materialTarget = stateTarget.getMaterial();
+
+        return (materialTarget != stateSource.getMaterial()
+                    || (stateTarget.getBlock() == stateSource.getBlock()
+                        && stateTarget.getValue(BlockLiquidLayer.LEVEL) < stateSource.getValue(BlockLiquidLayer.LEVEL)))
+                && materialTarget != Material.LAVA
+                && isBlocked(world, pos, stateTarget) == false;
+    }
+
+    /**
+     * This is from vanilla BlockDynamicLiquid...
+     */
+    private static boolean isBlocked(World world, BlockPos pos, IBlockState stateTarget)
+    {
+        Block block = stateTarget.getBlock();
+        Material material = stateTarget.getMaterial();
+
+        if ((block instanceof BlockDoor) == false && block != Blocks.STANDING_SIGN && block != Blocks.LADDER && block != Blocks.REEDS)
+        {
+            return material != Material.PORTAL && material != Material.STRUCTURE_VOID ? material.blocksMovement() : true;
+        }
+        else
+        {
+            return true;
         }
     }
 }

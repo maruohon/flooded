@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import javax.annotation.Nullable;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -163,6 +164,15 @@ public class BlockLiquidLayer extends BlockFloodedBase
 
     @Override
     public void randomTick(World world, BlockPos pos, IBlockState state, Random random)
+    {
+        if (world.isRemote == false)
+        {
+            WorldUtil.trySpreadWaterLayer(world, pos, state, false);
+        }
+    }
+
+    @Override
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos)
     {
         if (world.isRemote == false)
         {
