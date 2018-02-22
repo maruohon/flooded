@@ -89,17 +89,17 @@ public class Configs
         prop.setComment("If enabled, the water layers will try to spread to adjacent lower positions with random ticks");
         enableWaterLayerRandomSpread = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "floodNewChunksUnderground", true);
+        prop = conf.get(CATEGORY_GENERIC, "floodNewChunksUnderground", false);
         prop.setComment("If enabled, then newly generated chunks will get flooded entirely in every air\n" +
                         "space that is below the current global water level.");
         floodNewChunksUnderground = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "spreadWaterFullChunksAtOnce", false);
+        prop = conf.get(CATEGORY_GENERIC, "spreadWaterFullChunksAtOnce", true);
         prop.setComment("If enabled, then the water level rise is updated full chunks at a time.\n" +
                         "This might be less laggy and at least it will better \"group the lag spikes together\".");
         spreadWaterFullChunksAtOnce = prop.getBoolean();
 
-        prop = conf.get(CATEGORY_GENERIC, "waterSpreadChunksPerTick", 6);
+        prop = conf.get(CATEGORY_GENERIC, "waterSpreadChunksPerTick", 10);
         prop.setComment("The number of chunks to spread water in per game tick, if spreadWaterFullChunksAtOnce = true");
         waterSpreadChunksPerTick = prop.getInt();
 
@@ -107,15 +107,15 @@ public class Configs
         prop.setComment("Maximum number of scheduled updates at once for spreading water layers");
         waterSpreadScheduleLimit = prop.getInt();
 
-        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingCount", 200);
+        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingCount", 20);
         prop.setComment("How many attempts (max created blocks) are made at every water layer seeding attempt");
         waterLayerSeedingCount = prop.getInt();
 
-        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingInterval", 200);
+        prop = conf.get(CATEGORY_GENERIC, "waterLayerSeedingInterval", 20);
         prop.setComment("The interval in game ticks, how often new water layers are attempted to be created randomly");
         waterLayerSeedingInterval = prop.getInt();
 
-        prop = conf.get(CATEGORY_GENERIC, "waterRiseInterval", 6000);
+        prop = conf.get(CATEGORY_GENERIC, "waterRiseInterval", 400);
         prop.setComment("The interval in game ticks, how often the water level should rise by 1/16th of a block");
         waterRiseInterval = prop.getInt();
 
