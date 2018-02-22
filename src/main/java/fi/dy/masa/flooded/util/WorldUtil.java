@@ -244,6 +244,7 @@ public class WorldUtil
                                    blockOld != FloodedBlocks.WATER_LAYER
                                 && blockOld != Blocks.WATER
                                 && blockOld.isReplaceable(world, posMutable)
+                                && stateOld.getMaterial().isLiquid() == false
                                 && world.canSeeSky(posMutable)
                             )
                     )
@@ -330,9 +331,9 @@ public class WorldUtil
 
                     if (world.canSeeSky(posMutable))
                     {
-                        IBlockState state = chunk.getBlockState(x, y, z);
+                        IBlockState stateOld = chunk.getBlockState(x, y, z);
                         IBlockState stateDown = chunk.getBlockState(x, y - 1, z);
-                        Block blockOld = state.getBlock();
+                        Block blockOld = stateOld.getBlock();
                         Block blockDown = stateDown.getBlock();
                         BlockPos posDown = posMutable.down();
 
@@ -340,13 +341,14 @@ public class WorldUtil
                                 (
                                     (
                                         blockOld == FloodedBlocks.WATER_LAYER
-                                     && state.getValue(BlockLiquidLayer.LEVEL) < layerLevel
+                                     && stateOld.getValue(BlockLiquidLayer.LEVEL) < layerLevel
                                     )
                                     ||
                                     (
                                         blockOld != FloodedBlocks.WATER_LAYER
                                      && blockOld != Blocks.WATER
                                      && blockOld.isReplaceable(world, posMutable)
+                                     && stateOld.getMaterial().isLiquid() == false
                                     )
                                 )
                                 &&
@@ -416,6 +418,7 @@ public class WorldUtil
                         (
                             blockSide != FloodedBlocks.WATER_LAYER
                          && blockSide.isReplaceable(world, posSide)
+                         && stateSide.getMaterial().isLiquid() == false
                         )
                     )
                     &&
