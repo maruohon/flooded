@@ -33,6 +33,10 @@ import fi.dy.masa.flooded.util.WorldUtil;
 
 public class BlockLiquidLayer extends BlockFloodedBase
 {
+    public static final int DIVISOR = 8;
+    public static final int LEVEL_BITMASK = 0x7;
+    public static final int BITMASK_SIZE = 3;
+
     public static final AxisAlignedBB BOUNDS_LAYER_01 = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D,  1D / 16D, 1.0D);
     public static final AxisAlignedBB BOUNDS_LAYER_02 = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D,  2D / 16D, 1.0D);
     public static final AxisAlignedBB BOUNDS_LAYER_03 = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D,  3D / 16D, 1.0D);
@@ -49,7 +53,6 @@ public class BlockLiquidLayer extends BlockFloodedBase
     public static final AxisAlignedBB BOUNDS_LAYER_14 = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 14D / 16D, 1.0D);
     public static final AxisAlignedBB BOUNDS_LAYER_15 = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 15D / 16D, 1.0D);
 
-    //public static final PropertyInteger LEVEL = PropertyInteger.create("level", 1, 15);
     public static final PropertyInteger LEVEL = BlockLiquid.LEVEL;
     private final List<AxisAlignedBB> boundsList = new ArrayList<>();
 
@@ -58,17 +61,19 @@ public class BlockLiquidLayer extends BlockFloodedBase
         super(name, hardness, resistance, harvestLevel, material);
 
         // dummy, needed because we have to use BlockLiquid.LEVEL which is 0..15
-        // And we have to use that because some parts of vanilla code assume that a block with Material.WATER has that property
-        this.boundsList.add(BOUNDS_LAYER_01);
+        // And we have to use that property because some parts of vanilla code assume
+        // that a block with Material.WATER has that LEVEL property...
+        this.boundsList.add(BOUNDS_LAYER_01); // level 0 = height 8/8 (not used)
 
-        this.boundsList.add(BOUNDS_LAYER_01);
-        this.boundsList.add(BOUNDS_LAYER_02);
-        this.boundsList.add(BOUNDS_LAYER_03);
-        this.boundsList.add(BOUNDS_LAYER_04);
-        this.boundsList.add(BOUNDS_LAYER_05);
-        this.boundsList.add(BOUNDS_LAYER_06);
-        this.boundsList.add(BOUNDS_LAYER_07);
-        this.boundsList.add(BOUNDS_LAYER_08);
+        this.boundsList.add(BOUNDS_LAYER_14); // level 1 = height 7/8
+        this.boundsList.add(BOUNDS_LAYER_12); // level 2 = height 6/8
+        this.boundsList.add(BOUNDS_LAYER_10); // level 3 = height 5/8
+        this.boundsList.add(BOUNDS_LAYER_08); // level 4 = height 4/8
+        this.boundsList.add(BOUNDS_LAYER_06); // level 5 = height 3/8
+        this.boundsList.add(BOUNDS_LAYER_04); // level 6 = height 2/8
+        this.boundsList.add(BOUNDS_LAYER_02); // level 7 = height 1/8
+
+        this.boundsList.add(BOUNDS_LAYER_08); // The rest are not used
         this.boundsList.add(BOUNDS_LAYER_09);
         this.boundsList.add(BOUNDS_LAYER_10);
         this.boundsList.add(BOUNDS_LAYER_11);
@@ -77,7 +82,7 @@ public class BlockLiquidLayer extends BlockFloodedBase
         this.boundsList.add(BOUNDS_LAYER_14);
         this.boundsList.add(BOUNDS_LAYER_15);
 
-        this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(1)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, Integer.valueOf(7)));
         this.setTickRandomly(Configs.enableWaterLayerRandomSpread);
     }
 
@@ -241,7 +246,7 @@ public class BlockLiquidLayer extends BlockFloodedBase
 
             if (state.getBlock() == this)
             {
-                height = (float) state.getValue(LEVEL) / 16f - 0.11111111F;
+                height = (float) state.getValue(LEVEL) / DIVISOR;
             }
 
             float f1 = (pos.getY() + 1) - height;
@@ -321,5 +326,41 @@ public class BlockLiquidLayer extends BlockFloodedBase
                 }
             }
         }
+    }
+
+    /**
+     * Returns the surface height in the range 1..8, where 8 is full block and 1 is 1/8
+     * @param state
+     * @return
+     */
+    public static int getSurfaceHeight(IBlockState state)
+    {
+        return DIVISOR - state.getValue(LEVEL);
+    }
+
+    /**
+     * Return true if the liquid surface level of the block <b>stateTarget</b>
+     * is higher than that of <b>stateReference</b>.
+     * @param stateTarget
+     * @param stateReference
+     * @return
+     */
+    public static boolean isLevelHigher(IBlockState stateTarget, IBlockState stateReference)
+    {
+        // The LEVEL property is inversed compared to the surface level in vanilla
+        // (LEVEL == 0 is a source block in vanilla), and we are also following that convention.
+        return stateTarget.getValue(LEVEL) < stateReference.getValue(LEVEL);
+    }
+
+    /**
+     * Returns the state with the requested surface level, where surfaceLevel is the actual
+     * height of the surface in 1/8ths of the block. Valid range for surfaceLevel is thus 1..7
+     * @param stateOriginal
+     * @param surfaceLevel
+     * @return
+     */
+    public static IBlockState getStateWithSurfaceLevelOf(IBlockState stateOriginal, int surfaceLevel)
+    {
+        return stateOriginal.withProperty(LEVEL, DIVISOR - surfaceLevel);
     }
 }

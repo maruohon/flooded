@@ -14,6 +14,7 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import fi.dy.masa.flooded.Flooded;
+import fi.dy.masa.flooded.block.BlockLiquidLayer;
 import fi.dy.masa.flooded.reference.Reference;
 
 public class WaterLevelManager
@@ -33,8 +34,8 @@ public class WaterLevelManager
         }
 
         World world = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(dimension);
-        int level = world != null ? world.getSeaLevel() * 16 : 63 * 16;
-        Flooded.logInfo("Initialized the water level in dimension {} to {}", dimension, (float) level / 16f);
+        int level = world != null ? world.getSeaLevel() * BlockLiquidLayer.DIVISOR : 63 * BlockLiquidLayer.DIVISOR;
+        Flooded.logInfo("Initialized the water level in dimension {} to {}", dimension, WorldUtil.getWaterLevelString(level));
 
         this.setWaterLevelInDimension(dimension, level);
 

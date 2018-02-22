@@ -9,21 +9,21 @@
     "variants": {
         "level": {
             "0":  { "model": "flooded:water_layer_00" },
-            "1":  { "model": "flooded:water_layer_01" },
-            "2":  { "model": "flooded:water_layer_02" },
-            "3":  { "model": "flooded:water_layer_03" },
-            "4":  { "model": "flooded:water_layer_04" },
-            "5":  { "model": "flooded:water_layer_05" },
-            "6":  { "model": "flooded:water_layer_06" },
-            "7":  { "model": "flooded:water_layer_07" },
-            "8":  { "model": "flooded:water_layer_08" },
-            "9":  { "model": "flooded:water_layer_09" },
-            "10": { "model": "flooded:water_layer_10" },
-            "11": { "model": "flooded:water_layer_11" },
-            "12": { "model": "flooded:water_layer_12" },
-            "13": { "model": "flooded:water_layer_13" },
-            "14": { "model": "flooded:water_layer_14" },
-            "15": { "model": "flooded:water_layer_15" }
+            "1":  { "model": "flooded:water_layer_14" },
+            "2":  { "model": "flooded:water_layer_12" },
+            "3":  { "model": "flooded:water_layer_10" },
+            "4":  { "model": "flooded:water_layer_08" },
+            "5":  { "model": "flooded:water_layer_06" },
+            "6":  { "model": "flooded:water_layer_04" },
+            "7":  { "model": "flooded:water_layer_02" },
+            "8":  { "model": "flooded:water_layer_00" },
+            "9":  { "model": "flooded:water_layer_00" },
+            "10": { "model": "flooded:water_layer_00" },
+            "11": { "model": "flooded:water_layer_00" },
+            "12": { "model": "flooded:water_layer_00" },
+            "13": { "model": "flooded:water_layer_00" },
+            "14": { "model": "flooded:water_layer_00" },
+            "15": { "model": "flooded:water_layer_00" }
         },
         "inventory": [{}]
     }
