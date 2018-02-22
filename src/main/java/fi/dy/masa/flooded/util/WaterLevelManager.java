@@ -47,8 +47,8 @@ public class WaterLevelManager
 
     public void setScheduleCount(int count)
     {
+        this.dirty |= (count != this.scheduleCount);
         this.scheduleCount = count;
-        this.dirty = true;
     }
 
     public void setWaterLevelInDimension(int dimension, int level)

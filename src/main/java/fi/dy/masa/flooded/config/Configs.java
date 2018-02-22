@@ -22,8 +22,10 @@ public class Configs
     public static boolean enableWaterLayerRandomSpread;
     public static boolean floodNewChunksUnderground;
     public static boolean dimensionListIsBlacklist;
+    public static boolean spreadWaterFullChunksAtOnce;
     public static int waterLayerSeedingCount;
     public static int waterLayerSeedingInterval;
+    public static int waterSpreadChunksPerTick;
     public static int waterSpreadScheduleLimit;
     public static int waterRiseInterval;
     private static String dimensionsStr;
@@ -91,6 +93,15 @@ public class Configs
         prop.setComment("If enabled, then newly generated chunks will get flooded entirely in every air\n" +
                         "space that is below the current global water level.");
         floodNewChunksUnderground = prop.getBoolean();
+
+        prop = conf.get(CATEGORY_GENERIC, "spreadWaterFullChunksAtOnce", false);
+        prop.setComment("If enabled, then the water level rise is updated full chunks at a time.\n" +
+                        "This might be less laggy and at least it will better \"group the lag spikes together\".");
+        spreadWaterFullChunksAtOnce = prop.getBoolean();
+
+        prop = conf.get(CATEGORY_GENERIC, "waterSpreadChunksPerTick", 6);
+        prop.setComment("The number of chunks to spread water in per game tick, if spreadWaterFullChunksAtOnce = true");
+        waterSpreadChunksPerTick = prop.getInt();
 
         prop = conf.get(CATEGORY_GENERIC, "waterSpreadScheduleLimit", 800);
         prop.setComment("Maximum number of scheduled updates at once for spreading water layers");

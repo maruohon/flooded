@@ -2,6 +2,7 @@ package fi.dy.masa.flooded.event;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent;
@@ -11,7 +12,6 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
-import fi.dy.masa.flooded.Flooded;
 import fi.dy.masa.flooded.capabilities.FloodedCapabilities;
 import fi.dy.masa.flooded.capabilities.FloodedCapabilities.FloodedChunkCapabilityProvider;
 import fi.dy.masa.flooded.capabilities.IFloodedChunkCapability;
@@ -22,10 +22,10 @@ import fi.dy.masa.flooded.util.WorldUtil;
 
 public class FloodedEventHandler
 {
-    private static final ResourceLocation FLOODED_CHUNK_CAP_NAME = new ResourceLocation(Reference.MOD_ID, "water_level");
+    private static final ResourceLocation FLOODED_CHUNK_CAP_NAME = new ResourceLocation(Reference.MOD_ID, "chunk_cap");
 
     @SubscribeEvent
-    public void onChunkAttachCapabilities(AttachCapabilitiesEvent<Chunk> event)
+    public void onAttachCapabilitiesChunk(AttachCapabilitiesEvent<Chunk> event)
     {
         event.addCapability(FLOODED_CHUNK_CAP_NAME, new FloodedChunkCapabilityProvider());
     }
@@ -33,34 +33,25 @@ public class FloodedEventHandler
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event)
     {
-        Chunk chunk = event.getChunk();
-        final int dimension = chunk.getWorld().provider.getDimension();
+        final int dimension = event.getWorld().provider.getDimension();
 
-        if (chunk.isTerrainPopulated() && Configs.enabledInDimension(dimension))
+        if (event.getWorld().isRemote == false && Configs.enabledInDimension(dimension))
         {
-            IFloodedChunkCapability cap = chunk.getCapability(FloodedCapabilities.CAPABILITY_FLOODED_CHUNK, null);
-            int waterLevel = WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
-
-            if (cap != null && cap.getWaterLevel() < waterLevel)
-            {
-                int lastLevel = cap.getWaterLevel();
-                WorldUtil.replaceOldWaterLayer(event.getWorld(), chunk.x, chunk.z, lastLevel, waterLevel);
-                WorldUtil.fillChunkWithWater(event.getWorld(), chunk.x, chunk.z, waterLevel, Configs.floodNewChunksUnderground);
-                WorldUtil.fillChunkWithWaterLayer(event.getWorld(), chunk.x, chunk.z, waterLevel);
-                cap.setWaterLevel(chunk, waterLevel);
-            }
+            final int waterLevel = WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
+            Chunk chunk = event.getChunk();
+            WorldUtil.updateWaterLevelInChunk((WorldServer) event.getWorld(), chunk, waterLevel, true);
         }
     }
 
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event)
     {
-        Chunk chunk = event.getChunk();
-        final int dimension = chunk.getWorld().provider.getDimension();
+        final int dimension = event.getWorld().provider.getDimension();
 
         // FIXME this event doesn't fire when stopping the server?
-        if (Configs.enabledInDimension(dimension))
+        if (event.getWorld().isRemote == false && Configs.enabledInDimension(dimension))
         {
+            Chunk chunk = event.getChunk();
             int waterLevel = WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
             IFloodedChunkCapability cap = chunk.getCapability(FloodedCapabilities.CAPABILITY_FLOODED_CHUNK, null);
 
@@ -91,10 +82,10 @@ public class FloodedEventHandler
     {
         final int dimension = event.getWorld().provider.getDimension();
 
-        if (Configs.enabledInDimension(dimension))
+        if (event.getWorld().isRemote == false && Configs.enabledInDimension(dimension))
         {
             int waterLevel = WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
-            WorldUtil.fillChunkWithWaterLayer(event.getWorld(), event.getChunkX(), event.getChunkZ(), waterLevel);
+            WorldUtil.fillChunkWithWaterLayer((WorldServer) event.getWorld(), event.getChunkX(), event.getChunkZ(), waterLevel);
 
             Chunk chunk = event.getWorld().getChunkFromChunkCoords(event.getChunkX(), event.getChunkZ());
             IFloodedChunkCapability cap = chunk.getCapability(FloodedCapabilities.CAPABILITY_FLOODED_CHUNK, null);
@@ -117,23 +108,7 @@ public class FloodedEventHandler
 
             if (Configs.enabledInDimension(dimension) && world.isRaining())
             {
-                int waterLevel = WaterLevelManager.INSTANCE.getWaterLevelInDimension(dimension);
-
-                if ((world.getTotalWorldTime() % Configs.waterRiseInterval) == 0)
-                {
-                    if (waterLevel < world.getActualHeight() * 16)
-                    {
-                        waterLevel++;
-                        Flooded.logInfo("Water level rising, new level = {}", (float) waterLevel / 16f);
-                        WaterLevelManager.INSTANCE.setWaterLevelInDimension(dimension, waterLevel);
-                    }
-                }
-
-                if ((world.getTotalWorldTime() % Configs.waterLayerSeedingInterval) == 0)
-                {
-                    Flooded.logInfo("Water layer seeding attempt, water level = {}", (float) waterLevel / 16f);
-                    WorldUtil.seedWaterLayers(world, waterLevel, Configs.waterLayerSeedingCount);
-                }
+                WorldUtil.onWorldTick(dimension, world);
             }
         }
     }
@@ -141,6 +116,11 @@ public class FloodedEventHandler
     @SubscribeEvent
     public void onWorldSave(WorldEvent.Save event)
     {
+        if (event.getWorld().provider.getDimension() == 0)
+        {
+            WaterLevelManager.INSTANCE.setScheduleCount(WorldUtil.getScheduleCount());
+        }
+
         WaterLevelManager.INSTANCE.writeToDisk();
     }
 }

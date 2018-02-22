@@ -7,6 +7,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.INBTSerializable;
 
 public class FloodedCapabilities
 {
@@ -18,9 +19,10 @@ public class FloodedCapabilities
         CapabilityManager.INSTANCE.register(IFloodedChunkCapability.class, new DefaultChunkWaterLevelStorage<>(), () -> new FloodedChunkCapability());
     }
 
-    public static class FloodedChunkCapabilityProvider implements ICapabilityProvider
+    public static class FloodedChunkCapabilityProvider implements ICapabilityProvider, INBTSerializable<NBTBase>
     {
-        private final FloodedChunkCapability cap;
+        private final IFloodedChunkCapability cap;
+        private static final DefaultChunkWaterLevelStorage<IFloodedChunkCapability> STORAGE = new DefaultChunkWaterLevelStorage<>();
 
         public FloodedChunkCapabilityProvider()
         {
@@ -37,6 +39,18 @@ public class FloodedCapabilities
         public <T> T getCapability(Capability<T> capability, EnumFacing facing)
         {
             return capability == CAPABILITY_FLOODED_CHUNK ? CAPABILITY_FLOODED_CHUNK.cast(this.cap) : null;
+        }
+
+        @Override
+        public NBTBase serializeNBT()
+        {
+            return STORAGE.writeNBT(CAPABILITY_FLOODED_CHUNK, this.cap, null);
+        }
+
+        @Override
+        public void deserializeNBT(NBTBase nbt)
+        {
+            STORAGE.readNBT(CAPABILITY_FLOODED_CHUNK, this.cap, null, nbt);
         }
     }
 
@@ -66,7 +80,7 @@ public class FloodedCapabilities
             }
 
             NBTTagCompound tags = (NBTTagCompound) nbt;
-            IFloodedChunkCapability cap = (IFloodedChunkCapability) instance;
+            IFloodedChunkCapability cap = capability.cast(instance);
             cap.setWaterLevelFromNBT(tags.getInteger("WaterLevel"));
         }
     }
